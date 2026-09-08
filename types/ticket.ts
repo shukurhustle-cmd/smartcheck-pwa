@@ -1,0 +1,1 @@
+export type TicketStatus="PENDING_APPROVAL"|"APPROVED"|"RECEPTION_PENDING"|"SECURITY_PENDING"|"CLOSED"|"REJECTED";export type Ticket={ticketId:string;ticketType:string;subjectName:string;reason:string;currentStep:number;currentAssignee:string;status:TicketStatus;createdAt:string;qrToken?:string};

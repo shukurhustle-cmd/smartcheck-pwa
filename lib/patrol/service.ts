@@ -1,0 +1,1 @@
+export function createPatrol(){return{patrolId:"PAT-"+crypto.randomUUID(),startedAt:new Date().toISOString(),status:"IN_PROGRESS"}}

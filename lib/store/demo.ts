@@ -1,0 +1,1 @@
+import {Ticket} from "@/types/ticket";export const demoTickets:Ticket[]=[{ticketId:"SC-DEMO-001",ticketType:"EARLY_PICKUP",subjectName:"Ahmed Khan · Class 8A",reason:"Medical appointment",currentStep:1,currentAssignee:"HEAD_ACADEMICS",status:"PENDING_APPROVAL",createdAt:new Date().toISOString()}];

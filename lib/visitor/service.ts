@@ -1,0 +1,1 @@
+export function createVisitorId(){return"VIS-"+crypto.randomUUID()}export function visitorPass(ticketId:string){return{passId:"VP-"+crypto.randomUUID(),ticketId,issuedAt:new Date().toISOString()}}

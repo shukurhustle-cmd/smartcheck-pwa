@@ -1,0 +1,1 @@
+export type Student={studentId:string;studentName:string;className:string;section:string;fatherName:string;motherName:string;fatherMobile?:string;motherMobile?:string;status:"ACTIVE"|"INACTIVE"};

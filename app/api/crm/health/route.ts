@@ -1,0 +1,1 @@
+import {NextResponse} from "next/server";import {getRows} from "@/lib/google/sheets-client";export async function GET(){try{const rows=await getRows("STUDENTS");return NextResponse.json({connected:true,sheet:"STUDENTS",rows:rows.length})}catch(error){return NextResponse.json({connected:false,error:error instanceof Error?error.message:"CRM connection failed"},{status:503})}}

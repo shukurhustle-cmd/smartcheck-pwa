@@ -1,0 +1,1 @@
+export type Host={hostId:string;name:string;department:string;roomNo:string;mobile?:string;email?:string;role?:string;status:"ACTIVE"|"INACTIVE"};

@@ -1,0 +1,1 @@
+import {NextRequest,NextResponse} from "next/server";import {createTicket} from "@/lib/workflow/engine";const tickets:any[]=[];export async function GET(){return NextResponse.json({tickets})}export async function POST(req:NextRequest){const body=await req.json();const ticket=createTicket(body);tickets.push(ticket);return NextResponse.json({ticket},{status:201})}

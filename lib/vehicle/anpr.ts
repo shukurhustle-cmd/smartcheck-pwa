@@ -1,0 +1,1 @@
+export type ANPRResult={plateText:string;confidence:number;source:"MANUAL"|"PROVIDER"};export async function recognizeVehicleNumber(_image:string):Promise<ANPRResult>{return{plateText:"",confidence:0,source:"MANUAL"}}

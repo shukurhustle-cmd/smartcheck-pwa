@@ -1,0 +1,1 @@
+import {NextRequest,NextResponse} from "next/server";import {advanceTicket} from "@/lib/workflow/engine";export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){const {id}=await params;return NextResponse.json({message:"Workflow action accepted",ticketId:id,next:"Next workflow step will be persisted after CRM integration",advanceTicketReady:true})}

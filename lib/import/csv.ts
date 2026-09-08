@@ -1,0 +1,1 @@
+export function parseCSV(text:string){const lines=text.trim().split(/\r?\n/);if(lines.length<2)return[];const headers=lines[0].split(",").map(x=>x.trim());return lines.slice(1).filter(Boolean).map(line=>{const values=line.split(",").map(x=>x.trim());return Object.fromEntries(headers.map((h,i)=>[h,values[i]||""]))})}

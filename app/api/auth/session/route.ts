@@ -1,0 +1,1 @@
+import {NextRequest,NextResponse} from "next/server";import {ROLES} from "@/lib/auth/rbac";export async function POST(req:NextRequest){const {role}=await req.json();if(!ROLES.includes(role))return NextResponse.json({error:"Invalid role"},{status:400});return NextResponse.json({success:true,role,mode:"PILOT_ROLE_SESSION"})}

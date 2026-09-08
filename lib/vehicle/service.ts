@@ -1,0 +1,1 @@
+export function vehicleCaptureMetadata(){const now=new Date();return{capturedAt:now.toISOString(),displayTimestamp:now.toLocaleString(),captureId:"VH-"+crypto.randomUUID()}}export function normalizeVehicleNumber(value:string){return value.toUpperCase().replace(/[^A-Z0-9]/g,"")}

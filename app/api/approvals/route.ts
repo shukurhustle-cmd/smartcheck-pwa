@@ -32,8 +32,8 @@ export async function POST(req:NextRequest){
       const ticket=(await client.query(`SELECT id,ticket_id,subject_name,reason,status,created_by FROM tickets WHERE ticket_id=$1 AND tenant_id=$2 FOR UPDATE`,[ticketId,session.tenantId])).rows[0];
       if(!ticket)return {error:"Request not found"};
       if(ticket.status!=="PENDING_APPROVAL")return {error:"Request is no longer pending"};
-      const ticketDbId=ticket.id;
-      if(!ticketDbId)return {error:"Request record is missing its database id"};
+      if(typeof ticket.id!=="string"||ticket.id.length===0)return {error:"Request record is missing its database id"};
+      const ticketDbId:string=ticket.id;
       if(action==="REJECT"){
         await client.query(`UPDATE tickets SET status='REJECTED',current_step='CLOSED',current_assignee='CLOSED',rejection_reason=$1,updated_at=now() WHERE id=$2`,[remarks,ticketDbId]);
         await notify(client,session.tenantId,ticketDbId,["PARENT","ADMIN","APPROVER","RECEPTION","SECURITY"],"Early pickup request rejected",`${ticket.subject_name} — ${ticket.reason}${remarks?` — ${remarks}`:""}`);

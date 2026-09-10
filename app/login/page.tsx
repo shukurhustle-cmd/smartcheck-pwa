@@ -1,6 +1,6 @@
 "use client";
 import {useState} from "react";
-import {useRouter,useSearchParams} from "next/navigation";
+import {useRouter} from "next/navigation";
 
 const roles=["PARENT","VISITOR","APPROVER","RECEPTION","SECURITY","ADMIN"] as const;
 const destinations={PARENT:"/parent",VISITOR:"/visitor",APPROVER:"/approvals",RECEPTION:"/reception",SECURITY:"/security/scan",ADMIN:"/admin"} as const;
@@ -10,7 +10,6 @@ export default function Login(){
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState("");
   const router=useRouter();
-  const params=useSearchParams();
 
   async function enter(){
     setLoading(true);setError("");
@@ -18,7 +17,7 @@ export default function Login(){
       const response=await fetch("/api/auth/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({role})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"Unable to start session");
-      const next=params.get("next");
+      const next=new URL(window.location.href).searchParams.get("next");
       router.replace(next||destinations[role]);
       router.refresh();
     }catch(err){setError(err instanceof Error?err.message:"Unable to sign in");setLoading(false)}

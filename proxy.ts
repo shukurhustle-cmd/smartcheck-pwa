@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from "next/server";
 import {allowedRolesForPath,isPublicPath,isValidRole} from "@/lib/auth/route-policy";
 
-export function proxy(request:NextRequest){
+export default function proxy(request:NextRequest){
   const {pathname}=request.nextUrl;
   if(isPublicPath(pathname))return NextResponse.next();
 

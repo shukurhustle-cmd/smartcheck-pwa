@@ -1,21 +1,19 @@
 import {NextRequest,NextResponse} from "next/server";
-import {allowedRolesForPath,isPublicPath,isValidRole} from "@/lib/auth/route-policy";
+import {allowedRolesForPath,isPublicPath} from "@/lib/auth/route-policy";
+import {SESSION_COOKIE,verifySessionToken} from "@/lib/auth/session";
 
 export default function proxy(request:NextRequest){
   const {pathname}=request.nextUrl;
   if(isPublicPath(pathname))return NextResponse.next();
-
-  const role=request.cookies.get("smartcheck_role")?.value;
   const allowed=allowedRolesForPath(pathname);
-
   if(!allowed)return NextResponse.next();
-  if(!isValidRole(role)||!allowed.includes(role)){
+  const session=verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
+  if(!session||!allowed.includes(session.role)){
     const url=request.nextUrl.clone();
     url.pathname="/login";
     url.searchParams.set("next",pathname);
     return NextResponse.redirect(url);
   }
-
   return NextResponse.next();
 }
 

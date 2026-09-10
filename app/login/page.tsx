@@ -1,1 +1,28 @@
-"use client";import {useState} from "react";import {useRouter} from "next/navigation";const roles=["PARENT","VISITOR","APPROVER","RECEPTION","SECURITY","ADMIN"];export default function Login(){const [role,setRole]=useState("PARENT");const router=useRouter();function enter(){localStorage.setItem("smartcheck_role",role);router.push("/dashboard")}return <main style={{maxWidth:440,margin:"auto",padding:24}}><h1>SmartCheck Sign in</h1><p>Select role for pilot environment.</p><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",padding:14}}>{roles.map(r=><option key={r}>{r}</option>)}</select><button onClick={enter} style={{width:"100%",marginTop:16,padding:14}}>Enter SmartCheck</button></main>}
+"use client";
+import {useState} from "react";
+import {useRouter,useSearchParams} from "next/navigation";
+
+const roles=["PARENT","VISITOR","APPROVER","RECEPTION","SECURITY","ADMIN"] as const;
+const destinations={PARENT:"/parent",VISITOR:"/visitor",APPROVER:"/approvals",RECEPTION:"/reception",SECURITY:"/security/scan",ADMIN:"/admin"} as const;
+
+export default function Login(){
+  const [role,setRole]=useState<(typeof roles)[number]>("PARENT");
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState("");
+  const router=useRouter();
+  const params=useSearchParams();
+
+  async function enter(){
+    setLoading(true);setError("");
+    try{
+      const response=await fetch("/api/auth/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({role})});
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||"Unable to start session");
+      const next=params.get("next");
+      router.replace(next||destinations[role]);
+      router.refresh();
+    }catch(err){setError(err instanceof Error?err.message:"Unable to sign in");setLoading(false)}
+  }
+
+  return <main style={{maxWidth:440,margin:"0 auto",padding:24,minHeight:"100vh",display:"flex",alignItems:"center"}}><section style={{width:"100%",background:"white",padding:24,borderRadius:16,boxShadow:"0 10px 30px rgba(0,0,0,.06)"}}><p style={{color:"#2563eb",fontWeight:700,letterSpacing:.5}}>SMARTCHECK</p><h1 style={{marginBottom:8}}>Sign in</h1><p style={{color:"#687386",lineHeight:1.5}}>Choose your SmartCheck role to enter the protected workspace.</p><label style={{display:"block",marginTop:20,fontWeight:600}}>Role<select value={role} onChange={e=>setRole(e.target.value as (typeof roles)[number])} style={{display:"block",width:"100%",padding:14,marginTop:7,border:"1px solid #d7dce5",borderRadius:10}}>{roles.map(r=><option key={r}>{r}</option>)}</select></label><button onClick={enter} disabled={loading} style={{width:"100%",marginTop:18,padding:14,border:0,borderRadius:10,background:"#2563eb",color:"white",fontWeight:700}}>{loading?"Signing in…":"Enter SmartCheck"}</button>{error&&<p style={{color:"#dc2626",marginTop:14}}>{error}</p>}<small style={{display:"block",marginTop:18,color:"#687386"}}>Pilot authentication is role-based. Production identity authentication will replace this selector.</small></section></main>
+}

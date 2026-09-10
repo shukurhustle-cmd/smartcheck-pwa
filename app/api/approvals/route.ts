@@ -22,6 +22,7 @@ export async function GET(req:NextRequest){
 export async function POST(req:NextRequest){
   const session=requireRole(req,["APPROVER","ADMIN"]);
   if(!session?.tenantId)return NextResponse.json({error:"Approver access required"},{status:403});
+  const tenantId:string=session.tenantId;
   try{
     const body=await req.json();
     const ticketId=String(body.ticketId||"");
@@ -29,7 +30,7 @@ export async function POST(req:NextRequest){
     const remarks=String(body.remarks||"").trim();
     if(!ticketId||!["APPROVE","REJECT"].includes(action))return NextResponse.json({error:"ticketId and APPROVE or REJECT are required"},{status:400});
     const result=await withTransaction(async client=>{
-      const ticket=(await client.query(`SELECT id,ticket_id,subject_name,reason,status,created_by FROM tickets WHERE ticket_id=$1 AND tenant_id=$2 FOR UPDATE`,[ticketId,session.tenantId])).rows[0];
+      const ticket=(await client.query(`SELECT id,ticket_id,subject_name,reason,status,created_by FROM tickets WHERE ticket_id=$1 AND tenant_id=$2 FOR UPDATE`,[ticketId,tenantId])).rows[0];
       if(!ticket)return {error:"Request not found"};
       if(ticket.status!=="PENDING_APPROVAL")return {error:"Request is no longer pending"};
       if(typeof ticket.id!=="string"||ticket.id.length===0||typeof ticket.ticket_id!=="string"||ticket.ticket_id.length===0||typeof ticket.subject_name!=="string"||typeof ticket.reason!=="string")return {error:"Request record is incomplete"};
@@ -39,7 +40,7 @@ export async function POST(req:NextRequest){
       const reason:string=ticket.reason;
       if(action==="REJECT"){
         await client.query(`UPDATE tickets SET status='REJECTED',current_step='CLOSED',current_assignee='CLOSED',rejection_reason=$1,updated_at=now() WHERE id=$2`,[remarks,ticketDbId]);
-        await notify(client,session.tenantId,ticketDbId,["PARENT","ADMIN","APPROVER","RECEPTION","SECURITY"],"Early pickup request rejected",`${subjectName} — ${reason}${remarks?` — ${remarks}`:""}`);
+        await notify(client,tenantId,ticketDbId,["PARENT","ADMIN","APPROVER","RECEPTION","SECURITY"],"Early pickup request rejected",`${subjectName} — ${reason}${remarks?` — ${remarks}`:""}`);
         return {status:"REJECTED"};
       }
       const token=createQRToken(ticketPublicId);
@@ -47,7 +48,7 @@ export async function POST(req:NextRequest){
       const expiresAt=new Date(Date.now()+30*60*1000);
       const tokenHash=createHash("sha256").update(token).digest("hex");
       await client.query(`UPDATE tickets SET status='QR_READY',current_step='RECEPTION',current_assignee='RECEPTION',qr_token_hash=$1,qr_expires_at=$2,updated_at=now() WHERE id=$3`,[tokenHash,expiresAt,ticketDbId]);
-      await notify(client,session.tenantId,ticketDbId,["PARENT","ADMIN","RECEPTION"],"Early pickup approved",`${subjectName} — QR ready for reception verification.`);
+      await notify(client,tenantId,ticketDbId,["PARENT","ADMIN","RECEPTION"],"Early pickup approved",`${subjectName} — QR ready for reception verification.`);
       return {status:"QR_READY",ticketId:ticketPublicId,token,qrDataUrl,expiresAt:expiresAt.toISOString()};
     });
     if("error" in result)return NextResponse.json({error:result.error},{status:409});

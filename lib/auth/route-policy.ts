@@ -3,17 +3,18 @@ import {ROLES,type Role} from "@/lib/auth/rbac";
 export const PUBLIC_PATHS=["/","/login"] as const;
 
 const PROTECTED_ROUTES:Array<[string,Role[]]>=[
+  ["/platform-admin",["PLATFORM_ADMIN"]],
   ["/dashboard",[...ROLES]],
-  ["/admin",["ADMIN"]],
-  ["/approvals",["ADMIN","APPROVER"]],
-  ["/parent",["ADMIN","PARENT"]],
-  ["/visitor",["ADMIN","VISITOR"]],
-  ["/reception",["ADMIN","RECEPTION"]],
-  ["/security",["ADMIN","SECURITY"]],
-  ["/reports",["ADMIN"]],
+  ["/admin",["PLATFORM_ADMIN","ADMIN"]],
+  ["/approvals",["PLATFORM_ADMIN","ADMIN","APPROVER"]],
+  ["/parent",["PLATFORM_ADMIN","ADMIN","PARENT"]],
+  ["/visitor",["PLATFORM_ADMIN","ADMIN","VISITOR"]],
+  ["/reception",["PLATFORM_ADMIN","ADMIN","RECEPTION"]],
+  ["/security",["PLATFORM_ADMIN","ADMIN","SECURITY"]],
+  ["/reports",["PLATFORM_ADMIN","ADMIN"]],
   ["/notifications",[...ROLES]],
-  ["/patrols",["ADMIN","SECURITY"]],
-  ["/help",["ADMIN","SECURITY"]],
+  ["/patrols",["PLATFORM_ADMIN","ADMIN","SECURITY"]],
+  ["/help",["PLATFORM_ADMIN","ADMIN","SECURITY"]],
 ];
 
 export function isPublicPath(pathname:string){return PUBLIC_PATHS.includes(pathname as (typeof PUBLIC_PATHS)[number]);}

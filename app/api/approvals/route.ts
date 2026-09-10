@@ -32,17 +32,19 @@ export async function POST(req:NextRequest){
       const ticket=(await client.query(`SELECT id,ticket_id,subject_name,reason,status,created_by FROM tickets WHERE ticket_id=$1 AND tenant_id=$2 FOR UPDATE`,[ticketId,session.tenantId])).rows[0];
       if(!ticket)return {error:"Request not found"};
       if(ticket.status!=="PENDING_APPROVAL")return {error:"Request is no longer pending"};
+      const ticketDbId=ticket.id;
+      if(!ticketDbId)return {error:"Request record is missing its database id"};
       if(action==="REJECT"){
-        await client.query(`UPDATE tickets SET status='REJECTED',current_step='CLOSED',current_assignee='CLOSED',rejection_reason=$1,updated_at=now() WHERE id=$2`,[remarks,ticket.id]);
-        await notify(client,session.tenantId,ticket.id,["PARENT","ADMIN","APPROVER","RECEPTION","SECURITY"],"Early pickup request rejected",`${ticket.subject_name} — ${ticket.reason}${remarks?` — ${remarks}`:""}`);
+        await client.query(`UPDATE tickets SET status='REJECTED',current_step='CLOSED',current_assignee='CLOSED',rejection_reason=$1,updated_at=now() WHERE id=$2`,[remarks,ticketDbId]);
+        await notify(client,session.tenantId,ticketDbId,["PARENT","ADMIN","APPROVER","RECEPTION","SECURITY"],"Early pickup request rejected",`${ticket.subject_name} — ${ticket.reason}${remarks?` — ${remarks}`:""}`);
         return {status:"REJECTED"};
       }
       const token=createQRToken(ticket.ticket_id);
       const qrDataUrl=await QRCode.toDataURL(token,{margin:2,width:600});
       const expiresAt=new Date(Date.now()+30*60*1000);
       const tokenHash=createHash("sha256").update(token).digest("hex");
-      await client.query(`UPDATE tickets SET status='QR_READY',current_step='RECEPTION',current_assignee='RECEPTION',qr_token_hash=$1,qr_expires_at=$2,updated_at=now() WHERE id=$3`,[tokenHash,expiresAt,ticket.id]);
-      await notify(client,session.tenantId,ticket.id,["PARENT","ADMIN","RECEPTION"],"Early pickup approved",`${ticket.subject_name} — QR ready for reception verification.`);
+      await client.query(`UPDATE tickets SET status='QR_READY',current_step='RECEPTION',current_assignee='RECEPTION',qr_token_hash=$1,qr_expires_at=$2,updated_at=now() WHERE id=$3`,[tokenHash,expiresAt,ticketDbId]);
+      await notify(client,session.tenantId,ticketDbId,["PARENT","ADMIN","RECEPTION"],"Early pickup approved",`${ticket.subject_name} — QR ready for reception verification.`);
       return {status:"QR_READY",ticketId:ticket.ticket_id,token,qrDataUrl,expiresAt:expiresAt.toISOString()};
     });
     if("error" in result)return NextResponse.json({error:result.error},{status:409});
